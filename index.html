@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#bc002d" />
+<title>Teng Family Japan Trip · Aug 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  :root {
+    --red: #bc002d;
+    --red-dark: #8a0021;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --bg: #fbf7f2;
+    --card: #ffffff;
+    --line: #e8e0d4;
+    --accent: #2f6f4f;
+    --gold: #c9a14b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  header.app {
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+    color: white;
+    padding: 20px 18px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 1000;
+  }
+  header.app h1 {
+    margin: 0; font-size: 1.25rem; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  header.app .sub { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  .countdown {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px; border-radius: 12px;
+    font-size: 0.75rem; font-weight: 500;
+    display: inline-block; margin-top: 6px;
+  }
+  nav.tabs {
+    display: flex; overflow-x: auto;
+    background: var(--card); border-bottom: 1px solid var(--line);
+    position: sticky; top: 78px; z-index: 999;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav.tabs button {
+    flex: 0 0 auto;
+    background: none; border: none; padding: 12px 16px;
+    font-size: 0.9rem; color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  nav.tabs button.active { color: var(--red); border-bottom-color: var(--red); font-weight: 600; }
+  main { padding: 16px 14px 80px; max-width: 720px; margin: 0 auto; }
+  section.view { display: none; animation: fadeIn 0.2s ease; }
+  section.view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  h2 { font-size: 1.1rem; margin: 6px 0 14px; color: var(--ink); }
+  h3 { font-size: 0.95rem; margin: 0 0 6px; color: var(--ink); }
+  .card {
+    background: var(--card); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 12px;
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card.confirmed { border-left: 4px solid var(--accent); }
+  .card.pending { border-left: 4px solid var(--gold); }
+  .card.cancelled { border-left: 4px solid #c44; opacity: 0.6; }
+  .badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge.green { background: #e3f1ea; color: var(--accent); }
+  .badge.gold { background: #fbf2dc; color: #8a6a1e; }
+  .badge.red { background: #fbe3e3; color: #a32424; }
+  .badge.osaka { background: #ffe9d1; color: #b85a00; }
+  .badge.kyoto { background: #ecdef5; color: #663f99; }
+  .badge.tokyo { background: #d1ecff; color: #1a5f99; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .value { font-size: 0.95rem; }
+  .muted { color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--red); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+  }
+  .meta-grid > div { font-size: 0.85rem; }
+  .meta-grid .label { display: block; margin-bottom: 2px; }
+
+  /* Dashboard */
+  .hero {
+    background: linear-gradient(135deg, #fff 0%, #fef8ee 100%);
+    border-radius: 16px; padding: 18px; margin-bottom: 14px;
+    border: 1px solid var(--line);
+  }
+  .hero h2 { margin: 0 0 4px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .stat { text-align: center; padding: 10px 4px; background: var(--card); border-radius: 10px; border: 1px solid var(--line); }
+  .stat .num { font-size: 1.4rem; font-weight: 700; color: var(--red); display: block; }
+  .stat .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Itinerary */
+  .day {
+    background: var(--card); border-radius: 14px; padding: 14px;
+    margin-bottom: 10px; border: 1px solid var(--line);
+  }
+  .day-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .day-num { font-size: 0.7rem; font-weight: 600; color: var(--muted); }
+  .day-date { font-size: 1.05rem; font-weight: 600; }
+  .day ul { margin: 6px 0 0 0; padding-left: 18px; font-size: 0.9rem; }
+  .day li { margin: 3px 0; }
+
+  /* Map */
+  #map { height: 60vh; min-height: 380px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 12px; }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip {
+    padding: 6px 12px; border-radius: 18px; background: var(--card);
+    border: 1px solid var(--line); font-size: 0.8rem; cursor: pointer;
+    user-select: none;
+  }
+  .chip.active { background: var(--red); color: white; border-color: var(--red); }
+  .place-list { display: flex; flex-direction: column; gap: 8px; }
+  .place {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .place .info { flex: 1; min-width: 0; }
+  .place .info h4 { margin: 0; font-size: 0.92rem; }
+  .place .info p { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .place .actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    background: none; border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 8px; cursor: pointer; font-size: 0.75rem; color: var(--muted);
+    font-family: inherit;
+  }
+  .icon-btn:hover { background: #f5efe5; }
+
+  /* Forms */
+  .form-card { background: var(--card); border-radius: 14px; padding: 16px; border: 1px solid var(--line); margin-bottom: 14px; }
+  .form-card label { display: block; font-size: 0.78rem; color: var(--muted); margin: 8px 0 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-card input, .form-card select, .form-card textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 0.92rem; font-family: inherit; background: white;
+  }
+  .form-card textarea { resize: vertical; min-height: 60px; }
+  .form-card button.primary {
+    background: var(--red); color: white; border: none;
+    padding: 10px 16px; border-radius: 10px; font-weight: 600;
+    cursor: pointer; margin-top: 12px; font-family: inherit; font-size: 0.92rem;
+  }
+  .form-card button.primary:hover { background: var(--red-dark); }
+  .form-card .help { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  details.helper { background: #fef8ee; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+  details.helper summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+  details.helper p { margin: 8px 0 0; font-size: 0.82rem; }
+
+  /* Phrases */
+  .phrase {
+    background: var(--card); border-radius: 12px; padding: 12px;
+    margin-bottom: 8px; border: 1px solid var(--line);
+  }
+  .phrase .jp { font-size: 1.05rem; font-weight: 600; }
+  .phrase .romaji { font-size: 0.82rem; color: var(--muted); font-style: italic; }
+  .phrase .en { font-size: 0.88rem; margin-top: 2px; }
+  .phrase-group h3 { margin: 14px 0 6px; color: var(--red); font-size: 0.95rem; }
+
+  /* Tips */
+  .tip-card { background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
+  .tip-card .ico { font-size: 1.2rem; margin-right: 6px; }
+  .tip-card h4 { margin: 0 0 4px; font-size: 0.95rem; }
+  .tip-card p { margin: 0; font-size: 0.85rem; color: var(--ink); }
+  .tip-card .kicker { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+
+  /* Conversion */
+  .conv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  .conv-row label { font-size: 0.78rem; color: var(--muted); }
+  .conv-row input { padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; font-size: 1rem; font-family: inherit; width: 100%; }
+  .rate-note { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  /* Footer */
+  footer { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 20px 14px 30px; }
+  footer .heart { color: var(--red); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: white; padding: 10px 18px; border-radius: 24px;
+    font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    z-index: 2000;
+  }
+  .toast.show { opacity: 0.95; }
+
+  @media (min-width: 600px) {
+    nav.tabs button { padding: 12px 22px; }
+    main { padding: 20px 18px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <h1>🗾 Teng Family Japan</h1>
+  <div class="sub">Osaka · Kyoto · Tokyo</div>
+  <div class="countdown" id="countdown">Loading…</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="dashboard" class="active">Home</button>
+  <button data-tab="itinerary">Itinerary</button>
+  <button data-tab="flights">Flights</button>
+  <button data-tab="hotels">Hotels</button>
+  <button data-tab="map">Map</button>
+  <button data-tab="phrases">Phrases</button>
+  <button data-tab="tips">Tips</button>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<section class="view active" id="dashboard">
+  <div class="hero">
+    <h2>Welcome to our Japan adventure</h2>
+    <p class="muted">Everything you need, in one place. Tap the tabs above to jump around.</p>
+    <div class="stat-grid">
+      <div class="stat"><span class="num" id="stat-days">--</span><span class="lbl">Days until</span></div>
+      <div class="stat"><span class="num">3</span><span class="lbl">Cities</span></div>
+      <div class="stat"><span class="num" id="stat-places">--</span><span class="lbl">Saved spots</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Up next</h3>
+    <div id="next-up">Loading…</div>
+  </div>
+
+  <div class="card">
+    <h3>Quick links</h3>
+    <p class="muted" style="margin: 6px 0 8px;">Handy stuff for in-country.</p>
+    <p style="margin: 4px 0;"><a href="https://www.google.com/maps" target="_blank" rel="noopener">📍 Google Maps</a></p>
+    <p style="margin: 4px 0;"><a href="https://translate.google.com" target="_blank" rel="noopener">💬 Google Translate</a></p>
+    <p style="margin: 4px 0;"><a href="https://www.japan-guide.com" target="_blank" rel="noopener">📖 japan-guide.com</a></p>
+    <p style="margin: 4px 0;"><a href="https://www.jorudan.co.jp/english/" target="_blank" rel="noopener">🚆 Jorudan train planner</a></p>
+  </div>
+</section>
+
+<!-- ITINERARY -->
+<section class="view" id="itinerary">
+  <h2>Day-by-day</h2>
+  <p class="muted" style="margin-top: -8px;">Edit me! See the README for how to customize.</p>
+  <div id="itinerary-list"></div>
+</section>
+
+<!-- FLIGHTS -->
+<section class="view" id="flights">
+  <h2>Flights</h2>
+  <div id="flights-list"></div>
+</section>
+
+<!-- HOTELS -->
+<section class="view" id="hotels">
+  <h2>Hotels</h2>
+  <div id="hotels-list"></div>
+</section>
+
+<!-- MAP -->
+<section class="view" id="map-view">
+  <h2>Map of places</h2>
+  <div class="filter-row" id="city-filters">
+    <button class="chip active" data-city="all">All</button>
+    <button class="chip" data-city="Osaka">Osaka</button>
+    <button class="chip" data-city="Kyoto">Kyoto</button>
+    <button class="chip" data-city="Tokyo">Tokyo</button>
+  </div>
+  <div class="filter-row" id="cat-filters">
+    <button class="chip active" data-cat="all">All types</button>
+    <button class="chip" data-cat="restaurant">🍣 Restaurant</button>
+    <button class="chip" data-cat="cafe">☕ Cafe</button>
+    <button class="chip" data-cat="sight">⛩️ Sight</button>
+    <button class="chip" data-cat="shopping">🛍️ Shopping</button>
+  </div>
+  <div id="map"></div>
+
+  <div class="form-card">
+    <h3 style="margin-top: 0;">➕ Add a place</h3>
+    <p class="muted" style="margin: 0 0 6px; font-size: 0.85rem;">Save a restaurant or spot you saw on Instagram. Tap the place on Google Maps → Share → Copy link, then paste below.</p>
+
+    <label for="p-name">Name</label>
+    <input id="p-name" type="text" placeholder="e.g. Ichiran Ramen Dotonbori" />
+
+    <label for="p-city">City</label>
+    <select id="p-city">
+      <option value="Osaka">Osaka</option>
+      <option value="Kyoto">Kyoto</option>
+      <option value="Tokyo">Tokyo</option>
+    </select>
+
+    <label for="p-cat">Type</label>
+    <select id="p-cat">
+      <option value="restaurant">🍣 Restaurant</option>
+      <option value="cafe">☕ Cafe</option>
+      <option value="sight">⛩️ Sight / activity</option>
+      <option value="shopping">🛍️ Shopping</option>
+    </select>
+
+    <label for="p-link">Google Maps link (or address)</label>
+    <input id="p-link" type="text" placeholder="https://maps.google.com/… or paste an address" />
+    <div class="help">We'll pull the coordinates from the link automatically.</div>
+
+    <label for="p-notes">Notes (why are you saving it?)</label>
+    <textarea id="p-notes" placeholder="Try the tonkotsu. Get there before 11am."></textarea>
+
+    <button class="primary" id="add-place-btn">Add to map</button>
+
+    <details class="helper">
+      <summary>How does this save?</summary>
+      <p>Your additions are stored in this browser's memory (localStorage). They show up on the map immediately, but only on this device. To share with the family, tap <b>Export my additions</b> below and send them to Lilly — she'll add them to the shared list.</p>
+    </details>
+
+    <button class="icon-btn" id="export-btn" style="margin-top: 10px;">📤 Export my additions</button>
+    <button class="icon-btn" id="clear-btn" style="margin-top: 10px; margin-left: 6px;">🗑️ Clear my additions</button>
+  </div>
+
+  <h3>List view</h3>
+  <div class="place-list" id="place-list"></div>
+</section>
+
+<!-- PHRASES -->
+<section class="view" id="phrases">
+  <h2>Useful Japanese</h2>
+  <div id="phrases-list"></div>
+</section>
+
+<!-- TIPS -->
+<section class="view" id="tips">
+  <h2>Good to know</h2>
+
+  <div class="card">
+    <h3>💴 Currency converter</h3>
+    <div class="conv-row">
+      <div>
+        <label>CAD</label>
+        <input id="cad-input" type="number" value="100" min="0" step="1" />
+      </div>
+      <div>
+        <label>JPY ¥</label>
+        <input id="jpy-input" type="number" value="11000" min="0" step="1" />
+      </div>
+    </div>
+    <div class="rate-note">Rate (CAD → JPY): <input id="rate-input" type="number" value="110" step="0.5" style="width: 70px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font-family: inherit;"> · update before you travel</div>
+  </div>
+
+  <div id="tips-list"></div>
+
+  <div class="card">
+    <h3>🆘 Emergency numbers</h3>
+    <p style="margin: 4px 0;"><b>110</b> · Police</p>
+    <p style="margin: 4px 0;"><b>119</b> · Fire / ambulance</p>
+    <p style="margin: 4px 0;"><b>+81-3-3201-3331</b> · Japan Visitor Hotline (24/7, English)</p>
+    <p style="margin: 4px 0;"><b>+81-3-6699-9536</b> · Canadian Embassy, Tokyo</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Made with <span class="heart">♥</span> for the Teng family · Aug 2026
+</footer>
+
+<div class="toast" id="toast">Saved</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+/* ============================================================
+   TRIP DATA — edit me freely!
+   ============================================================ */
+const TRIP = {
+  startDate: "2026-08-01",
+  endDate: "2026-08-14",  // <- update if you know the return date
+  cities: ["Osaka", "Kyoto", "Tokyo"],
+
+  flights: [
+    {
+      airline: "Air Canada",
+      bookingRef: "AESAK5",
+      route: "Toronto (YYZ) → Osaka (KIX)",
+      date: "2026-08-01",
+      time: "TBD",
+      flightNo: "TBD",
+      status: "confirmed",
+      notes: "Booked Jan 13, 2026. Check email for seat assignments & exact times.",
+      managementUrl: "https://www.aircanada.com/ca/en/aco/home/manage-bookings.html"
+    },
+    {
+      airline: "Air Canada",
+      bookingRef: "AESAK5",
+      route: "Tokyo → Toronto (YYZ)",
+      date: "TBD",
+      time: "TBD",
+      flightNo: "TBD",
+      status: "pending",
+      notes: "Return leg — update with exact date once confirmed from Air Canada email.",
+      managementUrl: "https://www.aircanada.com/ca/en/aco/home/manage-bookings.html"
+    }
+  ],
+
+  hotels: [
+    {
+      name: "Osaka hotel",
+      city: "Osaka",
+      checkin: "2026-08-01",
+      checkout: "2026-08-03",
+      address: "Update with address from Expedia email",
+      confirmation: "Expedia #72070027312765",
+      status: "confirmed",
+      notes: "First two nights in Osaka. Check Expedia for hotel name & address."
+    },
+    {
+      name: "Hyatt Place Kyoto",
+      city: "Kyoto",
+      checkin: "2026-08-03",
+      checkout: "2026-08-05",
+      address: "Aburanokoji-dori Shimochojamachi-agaru, Kamigyo-ku, Kyoto",
+      confirmation: "Expedia #72070028447596",
+      status: "confirmed",
+      notes: "No bathtub in King rooms (shower only). Twin rooms have bathtubs. Smoking not allowed anywhere on property. They can help forward luggage to Tokyo (cash only, allow 1 day).",
+      website: "https://www.hyatt.com/hyatt-place/en-US/itmzk-hyatt-place-kyoto"
+    },
+    {
+      name: "Tokyo hotel",
+      city: "Tokyo",
+      checkin: "2026-08-05",
+      checkout: "2026-08-14",
+      address: "Update with address from Expedia email",
+      confirmation: "Expedia #72070148748999",
+      status: "confirmed",
+      notes: "Replacement booking after Asakusa View Hotel Annex Rokku was cancelled."
+    },
+    {
+      name: "Asakusa View Hotel Annex Rokku",
+      city: "Tokyo",
+      checkin: "2026-08-05",
+      checkout: "TBD",
+      address: "Asakusa, Tokyo",
+      confirmation: "Expedia #72070101281344",
+      status: "cancelled",
+      notes: "Booked Jan 16, 2026, then cancelled/refunded Jan 17–19. Replacement is #72070148748999."
+    }
+  ],
+
+  itinerary: [
+    { date: "2026-08-01", city: "Osaka", plans: ["Fly Toronto → Osaka (Air Canada AESAK5)", "Arrive KIX, train to hotel", "Light dinner near hotel — try not to fall asleep too early"] },
+    { date: "2026-08-02", city: "Osaka", plans: ["Dotonbori — takoyaki, okonomiyaki", "Osaka Castle", "Shinsekai for evening street food"] },
+    { date: "2026-08-03", city: "Osaka → Kyoto", plans: ["Check out of Osaka hotel", "Shinkansen to Kyoto (~15 min)", "Check in at Hyatt Place Kyoto", "Gion district walk at dusk"] },
+    { date: "2026-08-04", city: "Kyoto", plans: ["Fushimi Inari Taisha (early morning, ~7am to beat crowds)", "Kiyomizu-dera", "Nishiki Market for lunch", "Arashiyama bamboo grove (late afternoon)"] },
+    { date: "2026-08-05", city: "Kyoto → Tokyo", plans: ["Check out of Hyatt Place Kyoto", "Send luggage ahead to Tokyo hotel (Yamato/Kuroneko, ~¥2,000 per bag)", "Shinkansen Kyoto → Tokyo (~2h 20min)", "Check in, dinner in Shibuya"] },
+    { date: "2026-08-06", city: "Tokyo", plans: ["Tsukiji Outer Market for breakfast", "Asakusa & Senso-ji", "Sumida River walk", "Akihabara evening"] },
+    { date: "2026-08-07", city: "Tokyo", plans: ["teamLab Planets (book in advance!)", "Toyosu Market", "Odaiba waterfront"] },
+    { date: "2026-08-08", city: "Tokyo", plans: ["Day trip: Hakone (Mt. Fuji views) or Nikko", "Onsen if Hakone"] },
+    { date: "2026-08-09", city: "Tokyo", plans: ["Harajuku & Omotesando", "Meiji Shrine", "Shibuya crossing & Shibuya Sky"] },
+    { date: "2026-08-10", city: "Tokyo", plans: ["Ueno Park & museums", "Yanaka old-town walk", "Ginza for evening"] },
+    { date: "2026-08-11", city: "Tokyo", plans: ["Free / catch-up day", "Add what you missed"] },
+    { date: "2026-08-12", city: "Tokyo", plans: ["Shopping & souvenirs", "Last-day favourites"] },
+    { date: "2026-08-13", city: "Tokyo", plans: ["Buffer day", "Pack"] },
+    { date: "2026-08-14", city: "Tokyo → Toronto", plans: ["Check out", "Fly home (update date when known)"] }
+  ],
+
+  seedPlaces: [
+    // OSAKA
+    { name: "Dotonbori", city: "Osaka", cat: "sight", lat: 34.6687, lng: 135.5012, notes: "Iconic neon-lit canal area, street food central. Glico running man." },
+    { name: "Ichiran Ramen Dotonbori", city: "Osaka", cat: "restaurant", lat: 34.6691, lng: 135.5026, notes: "Famous tonkotsu, individual booths. Often a queue." },
+    { name: "Osaka Castle", city: "Osaka", cat: "sight", lat: 34.6873, lng: 135.5262, notes: "Reconstructed castle in park. Great views from top." },
+    { name: "Kuromon Ichiba Market", city: "Osaka", cat: "shopping", lat: 34.6655, lng: 135.5061, notes: "Food market, sashimi, A5 wagyu skewers." },
+    { name: "Shinsekai", city: "Osaka", cat: "sight", lat: 34.6524, lng: 135.5066, notes: "Retro neighborhood, kushikatsu, Tsutenkaku Tower." },
+
+    // KYOTO
+    { name: "Fushimi Inari Taisha", city: "Kyoto", cat: "sight", lat: 34.9671, lng: 135.7727, notes: "Thousands of red torii gates. GO AT 7AM to beat crowds and heat." },
+    { name: "Kiyomizu-dera", city: "Kyoto", cat: "sight", lat: 34.9949, lng: 135.7851, notes: "Wooden temple with panoramic views. Lovely approach streets." },
+    { name: "Nishiki Market", city: "Kyoto", cat: "shopping", lat: 35.0050, lng: 135.7649, notes: "'Kyoto's kitchen' — 400m of food stalls." },
+    { name: "Arashiyama Bamboo Grove", city: "Kyoto", cat: "sight", lat: 35.0170, lng: 135.6710, notes: "Iconic bamboo path. Less crowded in late afternoon." },
+    { name: "Gion", city: "Kyoto", cat: "sight", lat: 35.0036, lng: 135.7778, notes: "Traditional geisha district. Beautiful at dusk." },
+    { name: "Hyatt Place Kyoto", city: "Kyoto", cat: "sight", lat: 35.0089, lng: 135.7546, notes: "Your hotel ⛩️" },
+
+    // TOKYO
+    { name: "Senso-ji & Asakusa", city: "Tokyo", cat: "sight", lat: 35.7148, lng: 139.7967, notes: "Tokyo's oldest temple. Nakamise shopping street." },
+    { name: "Shibuya Crossing", city: "Tokyo", cat: "sight", lat: 35.6595, lng: 139.7005, notes: "World's busiest intersection. View from Starbucks or Shibuya Sky." },
+    { name: "Shibuya Sky", city: "Tokyo", cat: "sight", lat: 35.6585, lng: 139.7019, notes: "Open-air observation deck. Book sunset slot online." },
+    { name: "teamLab Planets", city: "Tokyo", cat: "sight", lat: 35.6489, lng: 139.7905, notes: "Immersive art museum. BOOK IN ADVANCE — sells out." },
+    { name: "Tsukiji Outer Market", city: "Tokyo", cat: "restaurant", lat: 35.6655, lng: 139.7707, notes: "Best for breakfast sushi & tamagoyaki. Go early." },
+    { name: "Meiji Shrine", city: "Tokyo", cat: "sight", lat: 35.6764, lng: 139.6993, notes: "Forest shrine in the middle of Tokyo." },
+    { name: "Harajuku / Takeshita St", city: "Tokyo", cat: "shopping", lat: 35.6702, lng: 139.7026, notes: "Youth fashion, crepes, kawaii everything." },
+    { name: "Ueno Park", city: "Tokyo", cat: "sight", lat: 35.7156, lng: 139.7732, notes: "Museums, zoo, ponds — easy big-park morning." },
+    { name: "Akihabara", city: "Tokyo", cat: "shopping", lat: 35.7022, lng: 139.7745, notes: "Electronics, anime, arcades." }
+  ],
+
+  phrases: [
+    { group: "Basics", items: [
+      { jp: "こんにちは", romaji: "Konnichiwa", en: "Hello / Good afternoon" },
+      { jp: "おはようございます", romaji: "Ohayou gozaimasu", en: "Good morning" },
+      { jp: "こんばんは", romaji: "Konbanwa", en: "Good evening" },
+      { jp: "ありがとうございます", romaji: "Arigatou gozaimasu", en: "Thank you (polite)" },
+      { jp: "すみません", romaji: "Sumimasen", en: "Excuse me / Sorry / Pardon" },
+      { jp: "はい / いいえ", romaji: "Hai / Iie", en: "Yes / No" },
+      { jp: "わかりません", romaji: "Wakarimasen", en: "I don't understand" },
+      { jp: "英語はなせますか?", romaji: "Eigo hanasemasu ka?", en: "Do you speak English?" }
+    ]},
+    { group: "At a restaurant", items: [
+      { jp: "メニューをください", romaji: "Menyuu o kudasai", en: "May I have the menu?" },
+      { jp: "これをください", romaji: "Kore o kudasai", en: "I'll have this, please" },
+      { jp: "おすすめは何ですか?", romaji: "Osusume wa nan desu ka?", en: "What do you recommend?" },
+      { jp: "美味しい!", romaji: "Oishii!", en: "Delicious!" },
+      { jp: "お会計お願いします", romaji: "Okaikei onegaishimasu", en: "Check, please" },
+      { jp: "ごちそうさまでした", romaji: "Gochisousama deshita", en: "Thanks for the meal" }
+    ]},
+    { group: "Getting around", items: [
+      { jp: "〜はどこですか?", romaji: "~ wa doko desu ka?", en: "Where is ~?" },
+      { jp: "駅", romaji: "Eki", en: "Station" },
+      { jp: "切符", romaji: "Kippu", en: "Ticket" },
+      { jp: "トイレ", romaji: "Toire", en: "Toilet / restroom" },
+      { jp: "近いですか?", romaji: "Chikai desu ka?", en: "Is it close?" }
+    ]},
+    { group: "Numbers & money", items: [
+      { jp: "いくらですか?", romaji: "Ikura desu ka?", en: "How much is it?" },
+      { jp: "現金 / カード", romaji: "Genkin / Kaado", en: "Cash / Card" },
+      { jp: "一 二 三", romaji: "Ichi, Ni, San", en: "1, 2, 3" },
+      { jp: "百 千 万", romaji: "Hyaku, Sen, Man", en: "100, 1,000, 10,000" }
+    ]}
+  ],
+
+  tips: [
+    { ico: "💳", kicker: "Money", title: "Carry some cash", body: "Cards are widely accepted in cities, but smaller restaurants, shrines, taxis (some), and vending machines are cash-only. Withdraw yen at 7-Eleven, Family Mart, or Japan Post ATMs (foreign cards work)." },
+    { ico: "🚆", kicker: "Transit", title: "Get an IC card", body: "Suica or ICOCA (loadable transit cards) work for trains, buses, and tons of vending machines/convenience stores nationwide. Add to Apple Wallet / Google Pay before you go or buy at the airport." },
+    { ico: "📶", kicker: "Internet", title: "Pocket WiFi or eSIM", body: "Pocket WiFi rentals at the airport are reliable for a group; eSIMs (Airalo, Ubigi) are cheaper if everyone has their own. Maps + translate are basically essential." },
+    { ico: "🚭", kicker: "Etiquette", title: "No eating while walking", body: "Eat near the vendor or in designated spots. Same goes for trains (intercity is OK, local trains are not). And no tipping — it's not done and can be confusing." },
+    { ico: "♨️", kicker: "Onsen", title: "If you have tattoos", body: "Many public onsen don't allow tattoos. Look for tattoo-friendly onsen, or book a private one (kashikiri buro). Cover-up patches work for very small tattoos." },
+    { ico: "🗑️", kicker: "Trash", title: "There are no public trash cans", body: "Seriously. Carry a small bag for your trash until you find a convenience store. Locals walk around with rubbish all day." },
+    { ico: "🛍️", kicker: "Shopping", title: "Tax-free for tourists", body: "Show your passport at participating stores (Don Quijote, Uniqlo, etc.) and skip the 10% consumption tax on purchases over ¥5,000." },
+    { ico: "🌡️", kicker: "August weather", title: "It's HOT and humid", body: "Tokyo, Osaka and Kyoto in August are typically 30–35°C with 70%+ humidity. Pack breathable clothes, sunscreen, a hand fan, and start sightseeing early. Many places have surprise rain too." },
+    { ico: "🛂", kicker: "Arrival", title: "Visit Japan Web", body: "Fill out customs & immigration online before you land (visitjapan.digital.go.jp). Saves time at the airport — get QR codes for the whole family." }
+  ]
+};
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+let map, markerLayer;
+const STORAGE_KEY = "tengJapan2026_userPlaces";
+let userPlaces = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let activeCity = "all";
+let activeCat = "all";
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+function updateCountdown() {
+  const start = new Date(TRIP.startDate + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.round((start - today) / (1000*60*60*24));
+  const el = document.getElementById("countdown");
+  const stat = document.getElementById("stat-days");
+  if (days > 0) {
+    el.textContent = `✈️ ${days} days to go`;
+    stat.textContent = days;
+  } else if (days === 0) {
+    el.textContent = "🎉 Today's the day!";
+    stat.textContent = "0";
+  } else if (days >= -14) {
+    el.textContent = `🗾 Day ${Math.abs(days)+1} of the trip`;
+    stat.textContent = Math.abs(days)+1;
+  } else {
+    el.textContent = "🏠 Welcome home!";
+    stat.textContent = "—";
+  }
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.getElementById("tabs").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("section.view").forEach(s => s.classList.remove("active"));
+  btn.classList.add("active");
+  const tab = btn.dataset.tab;
+  const target = tab === "map" ? "map-view" : tab;
+  document.getElementById(target).classList.add("active");
+  if (tab === "map" && map) setTimeout(() => map.invalidateSize(), 100);
+});
+
+/* ============================================================
+   FLIGHTS
+   ============================================================ */
+function renderFlights() {
+  const list = document.getElementById("flights-list");
+  list.innerHTML = TRIP.flights.map(f => {
+    const klass = f.status === "confirmed" ? "confirmed" : f.status === "cancelled" ? "cancelled" : "pending";
+    const badge = f.status === "confirmed"
+      ? `<span class="badge green">Confirmed</span>`
+      : f.status === "cancelled"
+      ? `<span class="badge red">Cancelled</span>`
+      : `<span class="badge gold">TBD</span>`;
+    return `
+      <div class="card ${klass}">
+        <div class="row">
+          <h3>${f.route}</h3>
+          ${badge}
+        </div>
+        <div class="meta-grid">
+          <div><span class="label">Date</span><div class="value">${formatDate(f.date)}</div></div>
+          <div><span class="label">Time</span><div class="value">${f.time}</div></div>
+          <div><span class="label">Airline</span><div class="value">${f.airline}</div></div>
+          <div><span class="label">Booking ref</span><div class="value"><code>${f.bookingRef}</code></div></div>
+        </div>
+        ${f.notes ? `<p class="muted" style="margin: 10px 0 0;">${f.notes}</p>` : ""}
+        ${f.managementUrl ? `<p style="margin: 8px 0 0;"><a href="${f.managementUrl}" target="_blank" rel="noopener">Manage booking →</a></p>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+/* ============================================================
+   HOTELS
+   ============================================================ */
+function renderHotels() {
+  const list = document.getElementById("hotels-list");
+  list.innerHTML = TRIP.hotels.map(h => {
+    const klass = h.status === "confirmed" ? "confirmed" : h.status === "cancelled" ? "cancelled" : "pending";
+    const badge = h.status === "confirmed"
+      ? `<span class="badge green">Confirmed</span>`
+      : h.status === "cancelled"
+      ? `<span class="badge red">Cancelled</span>`
+      : `<span class="badge gold">TBD</span>`;
+    const cityBadge = `<span class="badge ${h.city.toLowerCase()}">${h.city}</span>`;
+    const mapsLink = h.address ? `https://www.google.com/maps/search/${encodeURIComponent(h.name + " " + h.city)}` : null;
+    return `
+      <div class="card ${klass}">
+        <div class="row">
+          <h3>${h.name}</h3>
+          <div>${cityBadge} ${badge}</div>
+        </div>
+        <div class="meta-grid">
+          <div><span class="label">Check-in</span><div class="value">${formatDate(h.checkin)}</div></div>
+          <div><span class="label">Check-out</span><div class="value">${formatDate(h.checkout)}</div></div>
+          <div style="grid-column: 1 / -1;"><span class="label">Address</span><div class="value">${h.address}</div></div>
+          <div style="grid-column: 1 / -1;"><span class="label">Confirmation</span><div class="value">${h.confirmation}</div></div>
+        </div>
+        ${h.notes ? `<p class="muted" style="margin: 10px 0 0;">${h.notes}</p>` : ""}
+        <p style="margin: 8px 0 0;">
+          ${mapsLink ? `<a href="${mapsLink}" target="_blank" rel="noopener">Open in Maps →</a>` : ""}
+          ${h.website ? ` · <a href="${h.website}" target="_blank" rel="noopener">Hotel website →</a>` : ""}
+        </p>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ============================================================
+   ITINERARY
+   ============================================================ */
+function renderItinerary() {
+  const list = document.getElementById("itinerary-list");
+  list.innerHTML = TRIP.itinerary.map((d, i) => {
+    return `
+      <div class="day">
+        <div class="day-header">
+          <span class="day-num">Day ${i+1}</span>
+          <span class="day-date">${formatDate(d.date, true)}</span>
+          <span class="badge ${getCityBadgeColor(d.city)}">${d.city}</span>
+        </div>
+        <ul>
+          ${d.plans.map(p => `<li>${p}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+  }).join("");
+}
+function getCityBadgeColor(city) {
+  const c = city.toLowerCase();
+  if (c.includes("osaka")) return "osaka";
+  if (c.includes("kyoto")) return "kyoto";
+  if (c.includes("tokyo")) return "tokyo";
+  return "";
+}
+
+/* ============================================================
+   "UP NEXT" CARD
+   ============================================================ */
+function renderNextUp() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = TRIP.itinerary.find(d => new Date(d.date+"T00:00:00") >= today);
+  const el = document.getElementById("next-up");
+  if (upcoming) {
+    el.innerHTML = `
+      <div class="row">
+        <strong>${formatDate(upcoming.date, true)} · ${upcoming.city}</strong>
+      </div>
+      <ul style="margin: 6px 0 0; padding-left: 18px; font-size: 0.9rem;">
+        ${upcoming.plans.slice(0,3).map(p => `<li>${p}</li>`).join("")}
+      </ul>
+    `;
+  } else {
+    el.innerHTML = `<p class="muted">Trip's wrapped — hope it was amazing!</p>`;
+  }
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+function initMap() {
+  map = L.map("map").setView([35.0, 137.0], 6); // centered on Honshu
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap",
+    maxZoom: 19
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  renderMarkers();
+}
+function getCityBounds(city) {
+  if (city === "Osaka") return [[34.5, 135.3], [34.8, 135.7]];
+  if (city === "Kyoto") return [[34.9, 135.6], [35.1, 135.9]];
+  if (city === "Tokyo") return [[35.55, 139.5], [35.82, 139.9]];
+  return null;
+}
+function renderMarkers() {
+  if (!markerLayer) return;
+  markerLayer.clearLayers();
+  const allPlaces = [...TRIP.seedPlaces, ...userPlaces];
+  const filtered = allPlaces.filter(p =>
+    (activeCity === "all" || p.city === activeCity) &&
+    (activeCat === "all" || p.cat === activeCat)
+  );
+  const bounds = [];
+  filtered.forEach(p => {
+    if (typeof p.lat !== "number" || typeof p.lng !== "number") return;
+    const icon = catIcon(p.cat, p.user);
+    const m = L.marker([p.lat, p.lng], { icon }).addTo(markerLayer);
+    const mapsHref = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    m.bindPopup(`
+      <div style="font-family: inherit; min-width: 180px;">
+        <strong>${escapeHtml(p.name)}</strong>
+        ${p.user ? ' <span style="color: #c9a14b; font-size: 0.7rem;">★ added</span>' : ''}
+        <br><small style="color: #888;">${p.city} · ${catLabel(p.cat)}</small>
+        ${p.notes ? `<p style="margin: 6px 0 4px; font-size: 0.85em;">${escapeHtml(p.notes)}</p>` : ""}
+        <a href="${mapsHref}" target="_blank" rel="noopener" style="font-size: 0.8em;">Open in Google Maps →</a>
+      </div>
+    `);
+    bounds.push([p.lat, p.lng]);
+  });
+  if (activeCity !== "all") {
+    map.fitBounds(getCityBounds(activeCity), { padding: [20, 20] });
+  } else if (bounds.length) {
+    map.fitBounds(bounds, { padding: [30, 30] });
+  }
+  renderPlaceList(filtered);
+  document.getElementById("stat-places").textContent = allPlaces.length;
+}
+function catIcon(cat, isUser) {
+  const colors = {
+    restaurant: "#c44",
+    cafe: "#a86",
+    sight: "#2f6f4f",
+    shopping: "#6b6"
+  };
+  const emoji = { restaurant: "🍣", cafe: "☕", sight: "⛩️", shopping: "🛍️" }[cat] || "📍";
+  return L.divIcon({
+    html: `<div style="background:${colors[cat]||"#888"};color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.4);${isUser ? "border:2px solid #c9a14b;" : ""}">${emoji}</div>`,
+    className: "",
+    iconSize: [30,30],
+    iconAnchor: [15,15]
+  });
+}
+function catLabel(c) { return { restaurant: "🍣 Restaurant", cafe: "☕ Cafe", sight: "⛩️ Sight", shopping: "🛍️ Shopping" }[c] || c; }
+
+function renderPlaceList(places) {
+  const list = document.getElementById("place-list");
+  if (!places.length) {
+    list.innerHTML = `<p class="muted">No places match these filters yet.</p>`;
+    return;
+  }
+  list.innerHTML = places.map((p, i) => `
+    <div class="place">
+      <div class="info">
+        <h4>${escapeHtml(p.name)} ${p.user ? '<span style="color:#c9a14b">★</span>' : ''}</h4>
+        <p>${p.city} · ${catLabel(p.cat)}${p.notes ? ` · ${escapeHtml(p.notes).slice(0,60)}${p.notes.length > 60 ? "…" : ""}` : ""}</p>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" onclick="flyTo(${p.lat},${p.lng})">📍</button>
+        ${p.user ? `<button class="icon-btn" onclick="removeUserPlace(${userPlaces.indexOf(p)})">🗑️</button>` : ""}
+      </div>
+    </div>
+  `).join("");
+}
+function flyTo(lat, lng) {
+  document.querySelector('[data-tab="map"]').click();
+  setTimeout(() => map.flyTo([lat, lng], 15), 200);
+}
+
+document.getElementById("city-filters").addEventListener("click", e => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  document.querySelectorAll("#city-filters .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  activeCity = chip.dataset.city;
+  renderMarkers();
+});
+document.getElementById("cat-filters").addEventListener("click", e => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  document.querySelectorAll("#cat-filters .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  activeCat = chip.dataset.cat;
+  renderMarkers();
+});
+
+/* ============================================================
+   ADD A PLACE
+   ============================================================ */
+function parseLatLng(text) {
+  if (!text) return null;
+  // Try @lat,lng,zoom format in Google Maps URLs
+  const m1 = text.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m1) return [parseFloat(m1[1]), parseFloat(m1[2])];
+  // Try !3d / !4d format
+  const m2 = text.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (m2) return [parseFloat(m2[1]), parseFloat(m2[2])];
+  // Try q=lat,lng
+  const m3 = text.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m3) return [parseFloat(m3[1]), parseFloat(m3[2])];
+  // Plain "lat,lng"
+  const m4 = text.match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/);
+  if (m4) return [parseFloat(m4[1]), parseFloat(m4[2])];
+  return null;
+}
+const CITY_CENTERS = {
+  Osaka: [34.6937, 135.5023],
+  Kyoto: [35.0116, 135.7681],
+  Tokyo: [35.6762, 139.6503]
+};
+document.getElementById("add-place-btn").addEventListener("click", () => {
+  const name = document.getElementById("p-name").value.trim();
+  const city = document.getElementById("p-city").value;
+  const cat = document.getElementById("p-cat").value;
+  const link = document.getElementById("p-link").value.trim();
+  const notes = document.getElementById("p-notes").value.trim();
+  if (!name) { toast("Please give it a name"); return; }
+  let coords = parseLatLng(link);
+  if (!coords) {
+    coords = CITY_CENTERS[city];
+    toast(`Added at ${city} center — paste a Google Maps link for exact location`);
+  } else {
+    toast("Added! 📍");
+  }
+  userPlaces.push({ name, city, cat, lat: coords[0], lng: coords[1], notes, link, user: true, addedAt: new Date().toISOString() });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userPlaces));
+  document.getElementById("p-name").value = "";
+  document.getElementById("p-link").value = "";
+  document.getElementById("p-notes").value = "";
+  renderMarkers();
+});
+
+function removeUserPlace(idx) {
+  if (!confirm("Remove this place?")) return;
+  userPlaces.splice(idx, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userPlaces));
+  renderMarkers();
+}
+
+document.getElementById("export-btn").addEventListener("click", () => {
+  if (!userPlaces.length) { toast("No additions yet"); return; }
+  const json = JSON.stringify(userPlaces, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    toast("Copied! Paste to Lilly to add to shared list");
+  }).catch(() => {
+    prompt("Copy this and send to Lilly:", json);
+  });
+});
+document.getElementById("clear-btn").addEventListener("click", () => {
+  if (!userPlaces.length) { toast("Nothing to clear"); return; }
+  if (!confirm("Clear all your additions? (Won't affect the shared list.)")) return;
+  userPlaces = [];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userPlaces));
+  renderMarkers();
+  toast("Cleared");
+});
+
+/* ============================================================
+   PHRASES
+   ============================================================ */
+function renderPhrases() {
+  const list = document.getElementById("phrases-list");
+  list.innerHTML = TRIP.phrases.map(group => `
+    <div class="phrase-group">
+      <h3>${group.group}</h3>
+      ${group.items.map(p => `
+        <div class="phrase">
+          <div class="jp">${p.jp}</div>
+          <div class="romaji">${p.romaji}</div>
+          <div class="en">${p.en}</div>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+/* ============================================================
+   TIPS
+   ============================================================ */
+function renderTips() {
+  const list = document.getElementById("tips-list");
+  list.innerHTML = TRIP.tips.map(t => `
+    <div class="tip-card">
+      <div class="kicker"><span class="ico">${t.ico}</span>${t.kicker}</div>
+      <h4>${t.title}</h4>
+      <p>${t.body}</p>
+    </div>
+  `).join("");
+}
+
+/* ============================================================
+   CURRENCY CONVERTER
+   ============================================================ */
+function setupConverter() {
+  const cad = document.getElementById("cad-input");
+  const jpy = document.getElementById("jpy-input");
+  const rate = document.getElementById("rate-input");
+  let lock = false;
+  cad.addEventListener("input", () => { if (lock) return; lock = true; jpy.value = Math.round(cad.value * rate.value); lock = false; });
+  jpy.addEventListener("input", () => { if (lock) return; lock = true; cad.value = (jpy.value / rate.value).toFixed(2); lock = false; });
+  rate.addEventListener("input", () => { jpy.value = Math.round(cad.value * rate.value); });
+}
+
+/* ============================================================
+   UTIL
+   ============================================================ */
+function formatDate(d, withWeekday) {
+  if (!d || d === "TBD") return "TBD";
+  const date = new Date(d + "T00:00:00");
+  if (isNaN(date)) return d;
+  const opts = withWeekday
+    ? { weekday: "short", month: "short", day: "numeric" }
+    : { month: "short", day: "numeric", year: "numeric" };
+  return date.toLocaleDateString("en-US", opts);
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+updateCountdown();
+renderFlights();
+renderHotels();
+renderItinerary();
+renderNextUp();
+renderPhrases();
+renderTips();
+setupConverter();
+initMap();
+setInterval(updateCountdown, 60*60*1000);
+</script>
+
+</body>
+</html>
