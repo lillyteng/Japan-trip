@@ -433,30 +433,30 @@
    ============================================================ */
 const TRIP = {
   startDate: "2026-08-01",
-  endDate: "2026-08-14",  // <- update if you know the return date
+  endDate: "2026-08-10",
   cities: ["Osaka", "Kyoto", "Tokyo"],
 
   flights: [
     {
       airline: "Air Canada",
       bookingRef: "AESAK5",
+      flightNo: "AC 59",
       route: "Toronto (YYZ) → Osaka (KIX)",
       date: "2026-08-01",
-      time: "TBD",
-      flightNo: "TBD",
+      time: "Depart 13:35 · Arrive 16:25 (Aug 2, Japan time)",
       status: "confirmed",
-      notes: "Booked Jan 13, 2026. Check email for seat assignments & exact times.",
+      notes: "Direct flight, ~13h. Land in Osaka late afternoon Aug 2 — train to hotel, light dinner, sleep.",
       managementUrl: "https://www.aircanada.com/ca/en/aco/home/manage-bookings.html"
     },
     {
       airline: "Air Canada",
       bookingRef: "AESAK5",
-      route: "Tokyo → Toronto (YYZ)",
-      date: "TBD",
-      time: "TBD",
-      flightNo: "TBD",
-      status: "pending",
-      notes: "Return leg — update with exact date once confirmed from Air Canada email.",
+      flightNo: "AC 2",
+      route: "Tokyo (HND) → Toronto (YYZ)",
+      date: "2026-08-10",
+      time: "Depart 18:05 · Arrive 17:30 (same day, Toronto time)",
+      status: "confirmed",
+      notes: "Departs Haneda (HND), not Narita. Be at airport ~16:00 for international departure.",
       managementUrl: "https://www.aircanada.com/ca/en/aco/home/manage-bookings.html"
     }
   ],
@@ -465,12 +465,12 @@ const TRIP = {
     {
       name: "Osaka hotel",
       city: "Osaka",
-      checkin: "2026-08-01",
+      checkin: "2026-08-02",
       checkout: "2026-08-03",
-      address: "Update with address from Expedia email",
+      address: "Check Expedia email for hotel name & address",
       confirmation: "Expedia #72070027312765",
       status: "confirmed",
-      notes: "First two nights in Osaka. Check Expedia for hotel name & address."
+      notes: "First night in Japan after arrival Aug 2 afternoon. Originally booked Jan 14, 2026."
     },
     {
       name: "Hyatt Place Kyoto",
@@ -484,42 +484,40 @@ const TRIP = {
       website: "https://www.hyatt.com/hyatt-place/en-US/itmzk-hyatt-place-kyoto"
     },
     {
-      name: "Tokyo hotel",
+      name: "Nippon Seinenkan Hotel",
       city: "Tokyo",
       checkin: "2026-08-05",
-      checkout: "2026-08-14",
-      address: "Update with address from Expedia email",
-      confirmation: "Expedia #72070148748999",
+      checkout: "2026-08-07",
+      address: "15 Kasumigaokamachi, Shinjuku, Tokyo",
+      confirmation: "Expedia #72074421790597",
       status: "confirmed",
-      notes: "Replacement booking after Asakusa View Hotel Annex Rokku was cancelled."
+      notes: "Inside Meiji Jingu Gaien park area — walking distance to the New National Stadium, Meiji Shrine. Quiet, leafy neighbourhood.",
+      website: "https://hotel.nippon-seinenkan.or.jp/en/"
     },
     {
-      name: "Asakusa View Hotel Annex Rokku",
+      name: "Tokyo Bay Shiomi Prince Hotel",
       city: "Tokyo",
-      checkin: "2026-08-05",
-      checkout: "TBD",
-      address: "Asakusa, Tokyo",
-      confirmation: "Expedia #72070101281344",
-      status: "cancelled",
-      notes: "Booked Jan 16, 2026, then cancelled/refunded Jan 17–19. Replacement is #72070148748999."
+      checkin: "2026-08-07",
+      checkout: "2026-08-10",
+      address: "2-8-16 Shiomi, Koto-ku, Tokyo",
+      confirmation: "Expedia #72074423083962",
+      status: "confirmed",
+      notes: "Tokyo Bay area, near Shiomi station (Rinkai line). Easy to teamLab Planets and the Toyosu Market. Convenient to Haneda for the Aug 10 flight home.",
+      website: "https://www.princehotels.com/shiomi/"
     }
   ],
 
   itinerary: [
-    { date: "2026-08-01", city: "Osaka", plans: ["Fly Toronto → Osaka (Air Canada AESAK5)", "Arrive KIX, train to hotel", "Light dinner near hotel — try not to fall asleep too early"] },
-    { date: "2026-08-02", city: "Osaka", plans: ["Dotonbori — takoyaki, okonomiyaki", "Osaka Castle", "Shinsekai for evening street food"] },
-    { date: "2026-08-03", city: "Osaka → Kyoto", plans: ["Check out of Osaka hotel", "Shinkansen to Kyoto (~15 min)", "Check in at Hyatt Place Kyoto", "Gion district walk at dusk"] },
-    { date: "2026-08-04", city: "Kyoto", plans: ["Fushimi Inari Taisha (early morning, ~7am to beat crowds)", "Kiyomizu-dera", "Nishiki Market for lunch", "Arashiyama bamboo grove (late afternoon)"] },
-    { date: "2026-08-05", city: "Kyoto → Tokyo", plans: ["Check out of Hyatt Place Kyoto", "Send luggage ahead to Tokyo hotel (Yamato/Kuroneko, ~¥2,000 per bag)", "Shinkansen Kyoto → Tokyo (~2h 20min)", "Check in, dinner in Shibuya"] },
-    { date: "2026-08-06", city: "Tokyo", plans: ["Tsukiji Outer Market for breakfast", "Asakusa & Senso-ji", "Sumida River walk", "Akihabara evening"] },
-    { date: "2026-08-07", city: "Tokyo", plans: ["teamLab Planets (book in advance!)", "Toyosu Market", "Odaiba waterfront"] },
-    { date: "2026-08-08", city: "Tokyo", plans: ["Day trip: Hakone (Mt. Fuji views) or Nikko", "Onsen if Hakone"] },
-    { date: "2026-08-09", city: "Tokyo", plans: ["Harajuku & Omotesando", "Meiji Shrine", "Shibuya crossing & Shibuya Sky"] },
-    { date: "2026-08-10", city: "Tokyo", plans: ["Ueno Park & museums", "Yanaka old-town walk", "Ginza for evening"] },
-    { date: "2026-08-11", city: "Tokyo", plans: ["Free / catch-up day", "Add what you missed"] },
-    { date: "2026-08-12", city: "Tokyo", plans: ["Shopping & souvenirs", "Last-day favourites"] },
-    { date: "2026-08-13", city: "Tokyo", plans: ["Buffer day", "Pack"] },
-    { date: "2026-08-14", city: "Tokyo → Toronto", plans: ["Check out", "Fly home (update date when known)"] }
+    { date: "2026-08-01", city: "Toronto → Osaka", plans: ["Pack & last checks", "Air Canada AC 59 · Toronto YYZ dep 13:35", "Overnight flight (~13h) — try to sleep on the plane"] },
+    { date: "2026-08-02", city: "Osaka", plans: ["Arrive KIX 16:25", "Haruka train or Nankai Rapi:t to central Osaka (~45 min)", "Check in to hotel", "Light dinner near hotel — try not to fall asleep too early"] },
+    { date: "2026-08-03", city: "Osaka → Kyoto", plans: ["Morning in Osaka — Dotonbori takoyaki, Kuromon market", "Check out", "Shinkansen Shin-Osaka → Kyoto (~15 min)", "Check in at Hyatt Place Kyoto", "Gion district walk at dusk"] },
+    { date: "2026-08-04", city: "Kyoto", plans: ["Fushimi Inari Taisha (be there by 7am to beat crowds & heat)", "Kiyomizu-dera + the slope shopping streets", "Nishiki Market for lunch", "Arashiyama bamboo grove (late afternoon)"] },
+    { date: "2026-08-05", city: "Kyoto → Tokyo", plans: ["Check out of Hyatt Place Kyoto", "Send luggage ahead to Nippon Seinenkan (Yamato/Kuroneko, ~¥2,000 per bag)", "Shinkansen Kyoto → Tokyo (~2h 20min)", "Check in at Nippon Seinenkan Hotel", "Dinner in Shinjuku or Shibuya"] },
+    { date: "2026-08-06", city: "Tokyo", plans: ["Meiji Shrine (walking distance from hotel)", "Harajuku & Takeshita-dori", "Omotesando for cafes & shops", "Shibuya crossing & Shibuya Sky (book sunset slot)"] },
+    { date: "2026-08-07", city: "Tokyo", plans: ["Check out of Nippon Seinenkan", "Cab/train to Tokyo Bay Shiomi Prince Hotel (Shiomi area)", "Drop bags / check in if room ready", "teamLab Planets in the afternoon (BOOK IN ADVANCE)", "Toyosu Market or Odaiba evening"] },
+    { date: "2026-08-08", city: "Tokyo", plans: ["Tsukiji Outer Market for breakfast sushi", "Asakusa & Senso-ji temple", "Nakamise-dori shopping", "Akihabara in the evening — electronics & anime"] },
+    { date: "2026-08-09", city: "Tokyo", plans: ["Ueno Park & museums (or Yanaka old-town walk)", "Ginza for shopping & dinner", "Last-night favourites — final souvenir run"] },
+    { date: "2026-08-10", city: "Tokyo → Toronto", plans: ["Pack & check out of Tokyo Bay Shiomi Prince", "Train/cab to Haneda (~30–40 min)", "Be at HND by 16:00", "Air Canada AC 2 · HND dep 18:05 → YYZ arr 17:30 same day"] }
   ],
 
   seedPlaces: [
